@@ -1,9 +1,11 @@
 package com.example;
 
 import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
 import akka.actor.Props;
+import akka.actor.ReceiveTimeout;
+import scala.concurrent.duration.Duration;
 
+import java.util.concurrent.TimeUnit;
 
 public class ActorB extends AbstractActor {
 
@@ -11,33 +13,26 @@ public class ActorB extends AbstractActor {
         return Props.create(ActorB.class, ActorB::new);
     }
 
+    public ActorB() {
+        getContext().setReceiveTimeout(Duration.create(2, TimeUnit.SECONDS));
+    }
+
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(MessageA.class, this::onMessageA)
-                .match(MessageB.class, this::onMessageB)
+                .match(Integer.class, this::onIntegerMessage)
+                .match(ReceiveTimeout.class, x -> getContext().getParent().tell(new Stop(), getSelf()))
                 .build();
     }
 
-    private void onMessageA(MessageA msg) {
-        System.out.println("Actor B received Message A : "+ msg.text + " from " + getSender());
-        getSender().tell(new MessageB(42), getSelf());
-        for (int i=0; i<10; i++){
-            System.out.println("Actor B doing work "+i);
+    private void onIntegerMessage(Integer num) {
+        try {
+            System.out.println("ActorB processing for " + num + " seconds");
+            Thread.sleep(num * 1000L);
+        } catch (InterruptedException e) {
+            System.out.println("Interrupted: " + e.getMessage());
         }
     }
 
-    private void onMessageB(MessageB msg) {
-        System.out.println("Actor B received Message B : "+ msg.number + " from " + getSender());
-        if(msg.number == 999) {
-            getSender().tell(new MessageA("Goodbye!"), getSelf());
-        }
-        else {
-            getSender().tell(new MessageB(999), getSelf());
-        }
-        for (int i=0; i<10; i++){
-            System.out.println("Actor B doing more work "+i);
-        }
-
-    }
+    public static class Stop {}
 }

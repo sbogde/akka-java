@@ -3,96 +3,67 @@ package com.example;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import akka.actor.Terminated;
 
+import java.util.Random;
 
 public class ActorA extends AbstractActor {
-    private final ActorRef counterRef;
 
-    public ActorA(ActorRef counterRef) {
-        this.counterRef = counterRef;
+    private final Random random = new Random();
+    private ActorRef actorBRef;
+
+    public ActorA(ActorRef actorBRef) {
+        this.actorBRef = actorBRef;
     }
 
-    public static Props props(ActorRef counterRef) {
-        return Props.create(ActorA.class, () -> new ActorA(counterRef));
+    public static Props props(ActorRef actorBRef) {
+        return Props.create(ActorA.class, () -> new ActorA(actorBRef));
+    }
+
+    @Override
+    public void preStart() {
+        getContext().watch(actorBRef);
+        generateMessages();
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(MessageA.class, this::onMessageA)
-                .match(MessageB.class, this::onMessageB)
-                .match(Integer.class, this::onIntegerMessage)
-                .match(Double.class, this::onDoubleMessage)
-                .match(Byte.class, this::onByteMessage)
-                .match(Short.class, this::onShortMessage)
-                .match(Long.class, this::onLongMessage)
-                .match(Float.class, this::onFloatMessage)
-                .match(Boolean.class, this::onBooleanMessage)
-                .match(Character.class, this::onCharacterMessage)
-                .match(Counter.IncrementMessage.class, this::onIncrementMessage)
-                .matchAny(this::onAnyMessage)
+                .match(ActorB.Stop.class, this::onStop)
+                .match(Terminated.class, t -> actorBRef == t.getActor(), t -> createNewActorB())
                 .build();
     }
 
-    private void onIncrementMessage(Counter.IncrementMessage msg) {
-        counterRef.tell(msg, getSelf());
-        System.out.println("Increment message sent to Counter");
+    private void onStop(ActorB.Stop stop) {
+        actorBRef.tell(akka.actor.PoisonPill.getInstance(), ActorRef.noSender());
     }
 
-    private void onCharacterMessage(Character character) {
-        System.out.println("Received a Character: " + character);
+    private void createNewActorB() {
+        // Stop watching the old ActorB instance
+        getContext().unwatch(actorBRef);
+
+        // Create a new ActorB instance and update the actorBRef
+        actorBRef = getContext().actorOf(ActorB.props(), "actorB" + System.currentTimeMillis());
+
+        // Start watching the new ActorB instance
+        getContext().watch(actorBRef);
     }
 
-    private void onBooleanMessage(Boolean aBoolean) {
-        System.out.println("Received a Boolean: " + aBoolean);
+
+    @Override
+    public void preRestart(Throwable reason, scala.Option<Object> message) {
+        // No call to postStop
     }
 
-    private void onFloatMessage(Float aFloat) {
-        System.out.println("Received a Float: " + aFloat);
+    @Override
+    public void postRestart(Throwable reason) {
+        // No call to preStart
     }
 
-    private void onLongMessage(Long aLong) {
-        System.out.println("Received a Long: " + aLong);
-    }
-    private void onShortMessage(Short aShort) {
-        System.out.println("Received a Short: " + aShort);
-    }
-    private void onByteMessage(Byte aByte) {
-        System.out.println("Received a Byte: " + aByte);
-    }
-
-    private void onDoubleMessage(Double aDouble) {
-        System.out.println("Received a Double: " + aDouble);
-    }
-
-    private void onIntegerMessage(Integer integer) {
-        System.out.println("Received an Integer: " + integer);
-    }
-
-    private void onAnyMessage(Object o) {
-        System.out.println("Received an unhandled message: " + o);
-    }
-
-    private void onMessageA(MessageA msg) {
-        System.out.println("Actor A received Message A : "+ msg.text + " from " + getSender());
-        if(msg.text.equalsIgnoreCase("Goodbye!")) {
-          getContext().getSystem().terminate();
+    public void generateMessages() {
+        for (int i = 0; i < 100; i++) {
+            int randomNumber = 1 + random.nextInt(5);
+            actorBRef.tell(randomNumber, getSelf());
         }
-        else {
-            ActorRef actorBRef = getContext().getSystem().actorOf(Props.create(ActorB.class));
-            actorBRef.tell(new MessageA("Hello!"), getSelf());
-        }
-        for (int i=0; i<10; i++){
-            System.out.println("Actor A doing work "+i);
-        }
-    }
-
-    private void onMessageB(MessageB msg) {
-        System.out.println("Actor A received Message B : "+ msg.number + " from " + getSender());
-        getSender().tell(new MessageB(999),getSelf());
-        for (int i=0; i<10; i++){
-            System.out.println("Actor A doing more work "+i);
-        }
-
     }
 }
