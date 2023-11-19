@@ -6,9 +6,14 @@ import akka.actor.Props;
 
 
 public class ActorA extends AbstractActor {
+    private final ActorRef counterRef;
 
-    public static Props props() {
-        return Props.create(ActorA.class, ActorA::new);
+    public ActorA(ActorRef counterRef) {
+        this.counterRef = counterRef;
+    }
+
+    public static Props props(ActorRef counterRef) {
+        return Props.create(ActorA.class, () -> new ActorA(counterRef));
     }
 
     @Override
@@ -24,8 +29,14 @@ public class ActorA extends AbstractActor {
                 .match(Float.class, this::onFloatMessage)
                 .match(Boolean.class, this::onBooleanMessage)
                 .match(Character.class, this::onCharacterMessage)
-                .matchAny(this::onAnyMessage) 
+                .match(Counter.IncrementMessage.class, this::onIncrementMessage)
+                .matchAny(this::onAnyMessage)
                 .build();
+    }
+
+    private void onIncrementMessage(Counter.IncrementMessage msg) {
+        counterRef.tell(msg, getSelf());
+        System.out.println("Increment message sent to Counter");
     }
 
     private void onCharacterMessage(Character character) {
