@@ -16,8 +16,46 @@ public class ActorA extends AbstractActor {
         return receiveBuilder()
                 .match(MessageA.class, this::onMessageA)
                 .match(MessageB.class, this::onMessageB)
-                .matchAny(this::onAnyMessage) // Handler for any other message
+                .match(Integer.class, this::onIntegerMessage)
+                .match(Double.class, this::onDoubleMessage)
+                .match(Byte.class, this::onByteMessage)
+                .match(Short.class, this::onShortMessage)
+                .match(Long.class, this::onLongMessage)
+                .match(Float.class, this::onFloatMessage)
+                .match(Boolean.class, this::onBooleanMessage)
+                .match(Character.class, this::onCharacterMessage)
+                .matchAny(this::onAnyMessage) 
                 .build();
+    }
+
+    private void onCharacterMessage(Character character) {
+        System.out.println("Received a Character: " + character);
+    }
+
+    private void onBooleanMessage(Boolean aBoolean) {
+        System.out.println("Received a Boolean: " + aBoolean);
+    }
+
+    private void onFloatMessage(Float aFloat) {
+        System.out.println("Received a Float: " + aFloat);
+    }
+
+    private void onLongMessage(Long aLong) {
+        System.out.println("Received a Long: " + aLong);
+    }
+    private void onShortMessage(Short aShort) {
+        System.out.println("Received a Short: " + aShort);
+    }
+    private void onByteMessage(Byte aByte) {
+        System.out.println("Received a Byte: " + aByte);
+    }
+
+    private void onDoubleMessage(Double aDouble) {
+        System.out.println("Received a Double: " + aDouble);
+    }
+
+    private void onIntegerMessage(Integer integer) {
+        System.out.println("Received an Integer: " + integer);
     }
 
     private void onAnyMessage(Object o) {

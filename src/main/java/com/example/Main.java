@@ -21,6 +21,10 @@ class Main {
         // Send a different type of message for testing
         actorARef.tell("This is a test message", actorARef);
 
+        actorARef.tell(24, actorARef); // int
+        actorARef.tell(6.39, actorARef); // double
+        actorARef.tell(true, actorARef); // boolean
+
         try {
             System.out.println("Press ENTER twice to end program.");
             System.in.read();
