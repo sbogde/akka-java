@@ -16,7 +16,12 @@ public class ActorA extends AbstractActor {
         return receiveBuilder()
                 .match(MessageA.class, this::onMessageA)
                 .match(MessageB.class, this::onMessageB)
+                .matchAny(this::onAnyMessage) // Handler for any other message
                 .build();
+    }
+
+    private void onAnyMessage(Object o) {
+        System.out.println("Received an unhandled message: " + o);
     }
 
     private void onMessageA(MessageA msg) {
