@@ -18,6 +18,9 @@ class Main {
         ActorRef actorARef = system.actorOf(Props.create(ActorA.class));
         actorARef.tell(new MessageA("Starting"),actorARef);
 
+        // Send a different type of message for testing
+        actorARef.tell("This is a test message", actorARef);
+
         try {
             System.out.println("Press ENTER twice to end program.");
             System.in.read();
