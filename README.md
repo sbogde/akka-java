@@ -1,2 +1,8 @@
-# akka-java
-Simple Akka program
+#  Simple Akka program in Java
+## Tasks
+1. The Actor class ActorA in the original sample Akka program currently responds to only one message object – MessageA. Modify the createReceive() method so that it will also respond to any other message and print out the message on the standard output.
+2. Every message in Akka is a Java object. However, not all messages need to have a custom Java class created for them. Convert the sample program so that it can respond to messages that contain the primitive data types such as byte, short, int, long, float, double, boolean, and char, without having to create custom Java classes.
+3. In standard multithreading programs (for example Pthread programs), shared-resource contention (e.g. global variables) can be an issue and requires the use of mutexes and critical sections. Demonstrate that with Akka Actor, this is not an issue, by creating a "Counter" Actor class to keep track of a global counter, and lots of instances(20) of "ActorA" object to send messages to "Counter" to increment the global counter.
+4. Create 2 Akka Actor classes "ActorA" and "ActorB" to demonstrate the Akka API setReceiveTimeout().ActorA will generate a random integer number from 1 to 5 in a loop for 100 times, and send this integer as a message to ActorB, which would then call Thread.sleep() that many seconds. Set the receive timeout to 2 seconds, and when the timeout triggers, send ActorB a stop() message, and then create a new instance of ActorB to process the next number.
+Task
+5. Create 3 Akka Actor classes call "Producer", "Supervisor" and "Worker". The "Producer" will generate 1000 random long integer numbers between 10000 and 100000. The "Producer" will send each number as a message to "Supervisor".
